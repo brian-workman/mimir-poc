@@ -1,0 +1,43 @@
+apiVersion: monitoring.grafana.com/v1alpha1
+kind: MetricsInstance
+metadata:
+  name: primary
+  namespace: default
+  labels:
+    agent: grafana-agent-metrics
+spec:
+  remoteWrite:
+  - url: http://20.121.106.217.nip.io/api/v1/push # Your remote write URL here
+    tlsConfig:
+      ca:
+        secret:
+          name: client-tls
+          key: ca.crt
+      cert:
+        secret:
+          name: client-tls
+          key: client.crt
+      keySecret:
+        name: client-tls
+        key: client.key
+
+  # Supply an empty namespace selector to look in all namespaces. Remove
+  # this to only look in the same namespace as the MetricsInstance CR
+  serviceMonitorNamespaceSelector: {}
+  serviceMonitorSelector:
+    matchLabels:
+      instance: primary
+
+  # Supply an empty namespace selector to look in all namespaces. Remove
+  # this to only look in the same namespace as the MetricsInstance CR.
+  podMonitorNamespaceSelector: {}
+  podMonitorSelector:
+    matchLabels:
+      instance: primary
+
+  # Supply an empty namespace selector to look in all namespaces. Remove
+  # this to only look in the same namespace as the MetricsInstance CR.
+  probeNamespaceSelector: {}
+  probeSelector:
+    matchLabels:
+      instance: primary

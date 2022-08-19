@@ -1,0 +1,62 @@
+nginx:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      # Enable client certificate authentication
+      nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+      # Create the secret containing the trusted ca certificates
+      nginx.ingress.kubernetes.io/auth-tls-secret: "mimir/nginx-tls"
+      # Specify the verification depth in the client certificates chain
+      nginx.ingress.kubernetes.io/auth-tls-verify-depth: "1"
+      # Specify if certificates are passed to upstream server
+      nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "false"
+    hosts:
+      - host: 20.81.50.193.nip.io # Your cluster ingress DNS goes here
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+    - hosts:
+      - 20.81.50.193.nip.io # Your cluster ingress DNS goes here
+      secretName: nginx-tls
+
+mimir:
+  structuredConfig:
+    alertmanager_storage:
+      backend: azure
+      azure:
+        account_name: 'yourstorageaccountname'
+        account_key: 'your-storage-account-key'
+        container_name: 'mimir-alertmanager'
+        endpoint_suffix: 'blob.core.windows.net'
+    blocks_storage:
+      backend: azure
+      azure:
+        account_name: 'yourstorageaccountname'
+        account_key: 'your-storage-account-key'
+        container_name: 'mimir-blocks'
+        endpoint_suffix: 'blob.core.windows.net'
+      s3: null
+      tsdb:
+        block_ranges_period: ["0h10m0s"] # This is for testing only. Pushes blocks to storage more frequently.
+    ruler_storage:
+      backend: azure
+      azure:
+        account_name: 'yourstorageaccountname'
+        account_key: 'your-storage-account-key'
+        container_name: 'mimir-ruler'
+        endpoint_suffix: 'blob.core.windows.net'
+
+minio:
+  enabled: false
+
+metaMonitoring:
+  serviceMonitor:
+    enabled: true
+  grafanaAgent:
+    enabled: true
+    installOperator: false
+    metrics:
+      remote:
+        url: "http://mimir-nginx.mimir.svc:80/api/v1/push"
